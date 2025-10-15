@@ -1,35 +1,179 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, FlatList, Image, TouchableOpacity,
+  View, Text, StyleSheet, Image, TouchableOpacity,
   SafeAreaView, TextInput, StatusBar, ScrollView, Alert
 } from 'react-native';
 
 export default function App() {
+  // --- States ---
   const [activeTab, setActiveTab] = useState('Home');
   const [selectedDestination, setSelectedDestination] = useState(null);
   const [selectedFlight, setSelectedFlight] = useState(null);
   const [selectedHotel, setSelectedHotel] = useState(null);
   const [searchText, setSearchText] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // 🌟 Gimmick login
 
-  // --- LOGIN SCREEN ---
+  // --- Auth States ---
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authMode, setAuthMode] = useState('login'); // 'login', 'register', 'reset'
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+
+  // --- Profile States ---
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [userProfile, setUserProfile] = useState({
+    name: 'John Doe',
+    title: 'Travel Enthusiast',
+    email: 'john.doe@example.com',
+    phone: '+62 812 3456 7890',
+    location: 'Jakarta, Indonesia',
+    bio: 'Seorang traveler yang suka menjelajahi alam dan budaya lokal. Tujuan berikutnya? Kamu yang tentukan!',
+  });
+
+  const handleProfileChange = (field, value) => {
+    setUserProfile(prev => ({ ...prev, [field]: value }));
+  };
+
+  // --- AUTH SCREENS ---
+  const renderLoginScreen = () => (
+    <SafeAreaView style={styles.loginContainer}>
+      <Image
+        source={{ uri: 'https://cdn-icons-png.flaticon.com/512/201/201623.png' }}
+        style={styles.loginLogo}
+      />
+      <Text style={styles.loginTitle}>Selamat Datang! 🌴</Text>
+      <Text style={styles.loginSubtitle}>Masuk untuk melanjutkan petualanganmu.</Text>
+      <TextInput
+        style={styles.authInput}
+        placeholder="Email"
+        placeholderTextColor="#888"
+        keyboardType="email-address"
+        value={email}
+        onChangeText={setEmail}
+      />
+      <TextInput
+        style={styles.authInput}
+        placeholder="Password"
+        placeholderTextColor="#888"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
+      <TouchableOpacity
+        style={styles.loginButton}
+        onPress={() => {
+          if (!email || !password) {
+            Alert.alert('Gagal', 'Email dan password tidak boleh kosong.');
+          } else {
+            setIsLoggedIn(true);
+          }
+        }}>
+        <Text style={styles.loginButtonText}>Masuk</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => setAuthMode('reset')}>
+        <Text style={styles.authLinkText}>Lupa Password?</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => setAuthMode('register')}>
+        <Text style={styles.authLinkText}>Belum punya akun? <Text style={{ fontWeight: 'bold' }}>Daftar di sini</Text></Text>
+      </TouchableOpacity>
+    </SafeAreaView>
+  );
+
+  const renderRegisterScreen = () => (
+    <SafeAreaView style={styles.loginContainer}>
+      <Image
+        source={{ uri: 'https://cdn-icons-png.flaticon.com/512/201/201623.png' }}
+        style={styles.loginLogo}
+      />
+      <Text style={styles.loginTitle}>Buat Akun Baru</Text>
+      <Text style={styles.loginSubtitle}>Satu langkah lagi menuju petualangan.</Text>
+      <TextInput
+        style={styles.authInput}
+        placeholder="Nama Lengkap"
+        placeholderTextColor="#888"
+        value={fullName}
+        onChangeText={setFullName}
+      />
+      <TextInput
+        style={styles.authInput}
+        placeholder="Email"
+        placeholderTextColor="#888"
+        keyboardType="email-address"
+        value={email}
+        onChangeText={setEmail}
+      />
+      <TextInput
+        style={styles.authInput}
+        placeholder="Password"
+        placeholderTextColor="#888"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
+      <TouchableOpacity
+        style={styles.loginButton}
+        onPress={() => {
+          if (!fullName || !email || !password) {
+            Alert.alert('Gagal', 'Semua kolom wajib diisi.');
+          } else {
+            Alert.alert('Berhasil!', 'Akun berhasil dibuat. Silakan masuk.', [
+              { text: 'OK', onPress: () => setAuthMode('login') },
+            ]);
+          }
+        }}>
+        <Text style={styles.loginButtonText}>Daftar</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => setAuthMode('login')}>
+        <Text style={styles.authLinkText}>Sudah punya akun? <Text style={{ fontWeight: 'bold' }}>Masuk</Text></Text>
+      </TouchableOpacity>
+    </SafeAreaView>
+  );
+
+  const renderResetPasswordScreen = () => (
+    <SafeAreaView style={styles.loginContainer}>
+      <Image
+        source={{ uri: 'https://cdn-icons-png.flaticon.com/512/201/201623.png' }}
+        style={styles.loginLogo}
+      />
+      <Text style={styles.loginTitle}>Reset Password</Text>
+      <Text style={styles.loginSubtitle}>Masukkan email Anda untuk menerima instruksi.</Text>
+      <TextInput
+        style={styles.authInput}
+        placeholder="Email"
+        placeholderTextColor="#888"
+        keyboardType="email-address"
+        value={email}
+        onChangeText={setEmail}
+      />
+      <TouchableOpacity
+        style={styles.loginButton}
+        onPress={() => {
+          if (!email) {
+            Alert.alert('Gagal', 'Email tidak boleh kosong.');
+          } else {
+            Alert.alert('Terkirim!', `Instruksi reset password telah dikirim ke ${email}.`, [
+              { text: 'OK', onPress: () => setAuthMode('login') },
+            ]);
+          }
+        }}>
+        <Text style={styles.loginButtonText}>Kirim Instruksi</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => setAuthMode('login')}>
+        <Text style={styles.authLinkText}>Kembali ke Login</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
+  );
+
   if (!isLoggedIn) {
-    return (
-      <SafeAreaView style={styles.loginContainer}>
-        <Image
-          source={{ uri: 'https://cdn-icons-png.flaticon.com/512/201/201623.png' }}
-          style={styles.loginLogo}
-        />
-        <Text style={styles.loginTitle}>Jalan Yuk 🌴</Text>
-        <Text style={styles.loginSubtitle}>Temukan petualangan terbaikmu hari ini!</Text>
-
-        <TouchableOpacity
-          style={styles.loginButton}
-          onPress={() => setIsLoggedIn(true)}>
-          <Text style={styles.loginButtonText}>Masuk Sekarang</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    );
+    switch (authMode) {
+      case 'register':
+        return renderRegisterScreen();
+      case 'reset':
+        return renderResetPasswordScreen();
+      case 'login':
+      default:
+        return renderLoginScreen();
+    }
   }
 
   // 🏝️ Daftar destinasi
@@ -212,12 +356,11 @@ export default function App() {
     </ScrollView>
   );
 
-  // --- MAIN PAGES (Perubahan dan Penambahan) ---
+  // --- MAIN PAGES ---
 
   // ✈️ Halaman Penerbangan
   const renderFlightsPage = () => (
     <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-      {renderSearchBar()}
       <Text style={styles.sectionTitle}>✈️ Semua Rute Penerbangan</Text>
       {filteredFlights.map((f) => (
         <TouchableOpacity key={f.id} style={styles.cardSmall} onPress={() => setSelectedFlight(f)}>
@@ -232,7 +375,6 @@ export default function App() {
   // 🏨 Halaman Reservasi (Hotel)
   const renderHotelsPage = () => (
     <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-      {renderSearchBar()}
       <Text style={styles.sectionTitle}>🏨 Pilihan Hotel Terbaik</Text>
       {filteredHotels.map((item) => (
         <TouchableOpacity key={item.id} style={styles.card} onPress={() => setSelectedHotel(item)}>
@@ -263,36 +405,84 @@ export default function App() {
     </ScrollView>
   );
 
-  // 👤 Halaman Profil (Diperbarui)
+  // 👤 Halaman Profil (DAPAT DIEDIT)
   const renderProfile = () => (
-    <View style={styles.centeredPage}>
+    <ScrollView style={styles.centeredPage}>
       <View style={{ alignItems: 'center', width: '100%', marginBottom: 20 }}>
         <Image
           source={{ uri: 'https://i.pravatar.cc/150?img=3' }}
           style={{ width: 100, height: 100, borderRadius: 50, marginBottom: 15 }}
         />
-        <Text style={{ fontSize: 22, fontWeight: 'bold' }}>John Doe</Text>
-        <Text style={{ color: '#555', fontSize: 16 }}>Travel Enthusiast</Text>
+        {isEditingProfile ? (
+          <>
+            <TextInput
+              style={styles.profileInputHeader}
+              value={userProfile.name}
+              onChangeText={text => handleProfileChange('name', text)}
+            />
+            <TextInput
+              style={styles.profileInputSubheader}
+              value={userProfile.title}
+              onChangeText={text => handleProfileChange('title', text)}
+            />
+          </>
+        ) : (
+          <>
+            <Text style={{ fontSize: 22, fontWeight: 'bold' }}>{userProfile.name}</Text>
+            <Text style={{ color: '#555', fontSize: 16 }}>{userProfile.title}</Text>
+          </>
+        )}
       </View>
+
       <View style={styles.profileInfoContainer}>
         <Text style={styles.profileInfoLabel}>Email:</Text>
-        <Text style={styles.profileInfoText}>john.doe@example.com</Text>
+        {isEditingProfile ? (
+          <TextInput style={styles.profileInput} value={userProfile.email} onChangeText={text => handleProfileChange('email', text)} />
+        ) : (
+          <Text style={styles.profileInfoText}>{userProfile.email}</Text>
+        )}
       </View>
       <View style={styles.profileInfoContainer}>
         <Text style={styles.profileInfoLabel}>Telepon:</Text>
-        <Text style={styles.profileInfoText}>+62 812 3456 7890</Text>
+        {isEditingProfile ? (
+          <TextInput style={styles.profileInput} value={userProfile.phone} onChangeText={text => handleProfileChange('phone', text)} />
+        ) : (
+          <Text style={styles.profileInfoText}>{userProfile.phone}</Text>
+        )}
       </View>
       <View style={styles.profileInfoContainer}>
         <Text style={styles.profileInfoLabel}>Lokasi:</Text>
-        <Text style={styles.profileInfoText}>Jakarta, Indonesia</Text>
+        {isEditingProfile ? (
+          <TextInput style={styles.profileInput} value={userProfile.location} onChangeText={text => handleProfileChange('location', text)} />
+        ) : (
+          <Text style={styles.profileInfoText}>{userProfile.location}</Text>
+        )}
       </View>
-      <Text style={{ color: '#555', marginVertical: 20, textAlign: 'center', fontStyle: 'italic' }}>
-        "Seorang traveler yang suka menjelajahi alam dan budaya lokal. Tujuan berikutnya? Kamu yang tentukan!"
-      </Text>
-    </View>
+
+      {isEditingProfile ? (
+        <TextInput
+          style={[styles.profileInput, { height: 80, textAlignVertical: 'top', marginTop: 10 }]}
+          value={userProfile.bio}
+          onChangeText={text => handleProfileChange('bio', text)}
+          multiline
+        />
+      ) : (
+        <Text style={{ color: '#555', marginVertical: 20, textAlign: 'center', fontStyle: 'italic' }}>
+          "{userProfile.bio}"
+        </Text>
+      )}
+
+      <TouchableOpacity
+        style={[styles.settingButton, { alignSelf: 'center', marginTop: 20 }]}
+        onPress={() => setIsEditingProfile(!isEditingProfile)}>
+        <Text style={styles.settingButtonText}>
+          {isEditingProfile ? 'Simpan Perubahan' : '✏️ Edit Profil'}
+        </Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 
-  // ⚙️ Halaman Pengaturan (Diperbarui)
+  // ⚙️ Halaman Pengaturan
   const renderSetting = () => (
     <View style={{ flex: 1, padding: 20 }}>
       <Text style={{ fontSize: 22, fontWeight: 'bold', marginBottom: 20 }}>Pengaturan</Text>
@@ -313,7 +503,7 @@ export default function App() {
   );
 
 
-  // --- Render Konten Utama (Logika Diperbarui) ---
+  // --- Render Konten Utama ---
   const renderContent = () => {
     // Prioritas utama untuk halaman detail
     if (selectedDestination) return renderDestinationDetail();
@@ -336,8 +526,6 @@ export default function App() {
       default:
         return ( // Halaman Home sekarang jadi dashboard
           <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-            {renderSearchBar()}
-
             <Text style={styles.sectionTitle}>🌍 Destinasi Populer</Text>
             {filteredDestinations.map((item) => (
               <TouchableOpacity key={item.id} style={styles.card} onPress={() => setSelectedDestination(item)}>
@@ -350,7 +538,6 @@ export default function App() {
             ))}
 
             <Text style={styles.sectionTitle}>✈️ Penerbangan Tersedia</Text>
-            {/* Hanya menampilkan 2 penerbangan pertama sebagai cuplikan */}
             {filteredFlights.slice(0, 2).map((f) => (
               <TouchableOpacity key={f.id} style={styles.cardSmall} onPress={() => setSelectedFlight(f)}>
                 <Text style={styles.cardTitle}>{f.route}</Text>
@@ -360,7 +547,6 @@ export default function App() {
             ))}
 
             <Text style={styles.sectionTitle}>🏨 Hotel Pilihan</Text>
-            {/* Hanya menampilkan 1 hotel pertama sebagai cuplikan */}
             {filteredHotels.slice(0, 1).map((item) => (
               <TouchableOpacity key={item.id} style={styles.card} onPress={() => setSelectedHotel(item)}>
                 <Image source={{ uri: item.image }} style={styles.cardImage} />
@@ -373,7 +559,6 @@ export default function App() {
             ))}
 
             <Text style={styles.sectionTitle}>🎁 Promo Spesial</Text>
-            {/* Hanya menampilkan 1 promo pertama sebagai cuplikan */}
             {promos.slice(0, 1).map((item) => (
               <View key={item.id} style={styles.card}>
                 <Image source={{ uri: item.image }} style={styles.cardImage} />
@@ -402,12 +587,16 @@ export default function App() {
       {/* Header hanya muncul jika tidak di halaman detail */}
       {!selectedDestination && !selectedFlight && !selectedHotel && (
         <View style={styles.header}>
-          <Text style={styles.headerText}>{activeTab === 'Home' ? 'Jalan Yuk 🌴' : activeTab}</Text>
-          <View style={styles.headerRight}>
-            <TouchableOpacity onPress={() => setActiveTab('Setting')}>
-              <Image source={require('./assets/setting.png')} style={styles.headerIcon} />
-            </TouchableOpacity>
+          <View style={styles.headerTopRow}>
+            <Text style={styles.headerText}>{activeTab === 'Home' ? 'Jalan Yuk 🌴' : activeTab}</Text>
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => setActiveTab('Setting')}>
+                <Image source={require('./assets/setting.png')} style={styles.headerIcon} />
+              </TouchableOpacity>
+            </View>
           </View>
+          {/* Search bar hanya muncul di tab tertentu */}
+          {['Home', 'Penerbangan', 'Reservasi'].includes(activeTab) && renderSearchBar()}
         </View>
       )}
       <View style={styles.content}>{renderContent()}</View>
@@ -434,38 +623,59 @@ export default function App() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f0f4f7' },
 
-  // 🌟 LOGIN PAGE
-  loginContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#e0f7fa' },
-  loginLogo: { width: 120, height: 120, marginBottom: 20 },
-  loginTitle: { fontSize: 28, fontWeight: 'bold', color: '#00bcd4' },
-  loginSubtitle: { fontSize: 16, color: '#555', marginVertical: 10 },
-  loginButton: {
-    backgroundColor: '#00bcd4',
+  // --- 🌟 AUTH PAGES ---
+  loginContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#e0f7fa', paddingHorizontal: 20 },
+  loginLogo: { width: 100, height: 100, marginBottom: 20 },
+  loginTitle: { fontSize: 26, fontWeight: 'bold', color: '#00796b', marginBottom: 5 },
+  loginSubtitle: { fontSize: 16, color: '#555', marginBottom: 25, textAlign: 'center' },
+  authInput: {
+    width: '100%',
+    backgroundColor: '#fff',
+    paddingHorizontal: 15,
     paddingVertical: 12,
-    paddingHorizontal: 40,
-    borderRadius: 25,
-    marginTop: 20,
-    elevation: 3
+    borderRadius: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    fontSize: 16
+  },
+  loginButton: {
+    width: '100%',
+    backgroundColor: '#00bcd4',
+    paddingVertical: 15,
+    borderRadius: 10,
+    marginTop: 10,
+    elevation: 3,
+    alignItems: 'center'
   },
   loginButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  authLinkText: {
+    color: '#00796b',
+    marginTop: 15,
+    fontSize: 14,
+  },
 
   // Header
   header: {
     backgroundColor: '#00bcd4',
+    paddingHorizontal: 20,
+    paddingTop: 15,
+    paddingBottom: 15,
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+  },
+  headerTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderBottomLeftRadius: 25,
-    borderBottomRightRadius: 25,
+    marginBottom: 10,
   },
   headerText: { fontSize: 22, fontWeight: 'bold', color: '#fff' },
   headerRight: { flexDirection: 'row' },
   headerIcon: { width: 26, height: 26, marginLeft: 15, tintColor: '#fff' },
 
-  content: { flex: 1, paddingHorizontal: 15 },
-  sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#00796b', marginVertical: 15, marginLeft: 5 },
+  content: { flex: 1, paddingHorizontal: 15, paddingTop: 10 },
+  sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#00796b', marginVertical: 10, marginLeft: 5 },
   card: {
     backgroundColor: '#fff',
     borderRadius: 16,
@@ -532,12 +742,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 15,
-    marginVertical: 10,
     elevation: 3,
   },
   searchInput: { flex: 1, fontSize: 16, color: '#333', paddingVertical: 10 },
 
-  // ⚙️ Setting list (Diperbarui)
+  // ⚙️ Setting list
   settingListItem: {
     backgroundColor: '#fff',
     borderRadius: 10,
@@ -547,7 +756,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
 
-  // Profile (Diperbarui)
+  // --- 👤 Profile (Diperbarui untuk Edit) ---
   centeredPage: {
     flex: 1,
     padding: 20,
@@ -567,6 +776,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     marginTop: 2,
+  },
+  profileInput: {
+    fontSize: 16,
+    color: '#333',
+    borderBottomWidth: 1,
+    borderColor: '#00bcd4',
+    paddingVertical: 2,
+  },
+  profileInputHeader: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    borderBottomWidth: 1,
+    borderColor: '#00bcd4',
+    textAlign: 'center',
+    paddingBottom: 2,
+  },
+  profileInputSubheader: {
+    fontSize: 16,
+    color: '#555',
+    borderBottomWidth: 1,
+    borderColor: '#ddd',
+    textAlign: 'center',
+    paddingBottom: 2,
+    marginTop: 5,
   },
   settingButton: {
     backgroundColor: '#00bcd4',
